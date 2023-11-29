@@ -1,0 +1,49 @@
+################################################################
+#
+#   Development:
+#   nodemon.cmd --ext '*' --exec docker-compose up app database --build
+#
+#   docker exec stt-provider-db sh -c 'exec mysqldump --all-databases -uroot -p"$MYSQL_ROOT_PASSWORD"' > /tmp/all-databases.sql
+#   docker exec stt-provider-db sh -c 'exec mysqldump stt_db stt_tasks -uroot -p"$MYSQL_ROOT_PASSWORD"' > /tmp/stt_db-stt_tasks-database.sql
+#
+################################################################
+
+networks:
+  stt-provider-network:
+    name: stt-provider-network
+
+services:
+  app:
+    build: ./stt-provider
+    container_name: stt-provider-app
+    restart: always
+    networks:
+      - stt-provider-network
+    command: >
+      sh -c "
+        ./init.sh
+        "
+    ports:
+      - 8888:8080
+    environment:
+      MYSQL_HOST: stt-provider-db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: NGQ2ODk3NDc0YzRmOTcyOGRlZDg0N2M0
+      MYSQL_DATABASE: stt_db
+      LANGUAGE_CODE: de
+      # WHISPER_MODEL: tiny  # DEV
+      WHISPER_MODEL: large  # Production
+  database:
+    build: ./stt-db
+    container_name: stt-provider-db
+    restart: always
+    networks:
+      - stt-provider-network
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_USER: root
+      MYSQL_ROOT_PASSWORD: MWVmNzZlOGRhOTQzZWI1MTBiMzhhZjU1
+      MYSQL_DATABASE: stt_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: NGQ2ODk3NDc0YzRmOTcyOGRlZDg0N2M0

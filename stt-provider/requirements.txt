@@ -1,0 +1,5 @@
+openai-whisper
+mysql-connector-python
+fastapi
+uvicorn
+validators
