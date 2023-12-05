@@ -94,7 +94,11 @@ class TaskResponse(BaseModel):
 
 
 @app.get("/list_tasks", response_model=List[TaskResponse])
-def list_tasks(show_all: str  = Query("false", description="Possible Values: true, false")):
+def list_tasks(
+    show_all: str  = Query("false", description="Show all entrys; Possible Values: true, false"),
+    show_recent: str  = Query("false", description="Show Results based on given days; Possible Values: true, false"),
+    days: int  = Query(0, description="Number of (last) days to be showen; Possible Values: (positive) integer")
+):
     try:
         mydb = mysql.connector.connect(
             host=env_var_mysql_host,
@@ -106,6 +110,11 @@ def list_tasks(show_all: str  = Query("false", description="Possible Values: tru
         cursor = mydb.cursor(dictionary=True)
         if (show_all == "true"):
             cursor.execute("SELECT * FROM stt_tasks ORDER BY task_id DESC;")
+        elif (show_recent == "true"):
+            if (isinstance(days, int)):
+                cursor.execute("SELECT * FROM stt_tasks WHERE pit_task_added > NOW() - INTERVAL " + str(days) + " DAY ORDER BY task_id DESC;")
+            else:
+                cursor.execute("SELECT * FROM stt_tasks WHERE pit_task_added > NOW() - INTERVAL 7 DAY ORDER BY task_id DESC;")
         else:
             cursor.execute("SELECT * FROM stt_tasks ORDER BY task_id DESC LIMIT 100;")
 
