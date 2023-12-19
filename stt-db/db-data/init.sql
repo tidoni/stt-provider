@@ -15,5 +15,6 @@ CREATE TABLE `stt_tasks` (
   `pit_processing_started` timestamp NULL DEFAULT NULL,
   `pit_processing_finished` timestamp NULL DEFAULT NULL,
   `initial_prompt` varchar(4096) DEFAULT '',
+  `duration_in_seconds` int(11) DEFAULT NULL,
   PRIMARY KEY (`task_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

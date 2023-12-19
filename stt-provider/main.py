@@ -88,6 +88,7 @@ def transcribe(transcribe: Transcribe):
 class TaskResponse(BaseModel):
     task_id: int
     file_name: str
+    duration: str
     processing_started: int
     callback_send: int
     error_encountered: int
@@ -95,8 +96,8 @@ class TaskResponse(BaseModel):
 
 @app.get("/list_tasks", response_model=List[TaskResponse])
 def list_tasks(
-    show_all: str  = Query("false", description="Show all entrys; Possible Values: true, false"),
-    days: int  = Query(0, description="Number of (last) days to be showen; Possible Values: (positive) integer")
+    show_all: str = Query("false", description="Show all entrys; Possible Values: true, false"),
+    days: int = Query(0, description="Number of (last) days to be showen; Possible Values: (positive) integer")
 ):
     try:
         mydb = mysql.connector.connect(
@@ -120,6 +121,7 @@ def list_tasks(
             data_row = {}
             data_row['task_id'] = row['task_id']
             data_row['file_name'] = row['file_name']
+            data_row['duration_in_seconds'] = "{:d}:{:02d}".format((row['duration_in_seconds'] if row['duration_in_seconds'] is not None else 0) // 60, (row['duration_in_seconds'] if row['duration_in_seconds'] is not None else 0) % 60)
             data_row['processing_started'] = row['processing_started']
             data_row['callback_send'] = row['callback_send']
             data_row['error_encountered'] = row['error_encountered']
@@ -142,6 +144,8 @@ class TaskDetailsResponse(BaseModel):
     file_path: str
     callback_url: str
     file_name: str
+    duration: str
+    duration_in_seconds: int
     initial_prompt: str
     processing_started: int
     pit_processing_started: datetime.datetime
@@ -171,17 +175,19 @@ def task_details(task_id: int) -> Response:
 
         json_data = {
             "task_id": data['task_id'],
-            "pit_task_added": data['pit_task_added'] if data['pit_task_added'] == None else dt.strptime(str(data['pit_task_added']), '%Y-%m-%d %H:%M:%S').isoformat(),
+            "pit_task_added": data['pit_task_added'] if data['pit_task_added'] is None else dt.strptime(str(data['pit_task_added']), '%Y-%m-%d %H:%M:%S').isoformat(),
             "download_url": data['download_url'],
             "file_path": data['file_path'],
             "callback_url": data['callback_url'],
             "file_name": data['file_name'],
+            "duration": "{:d}:{:02d}".format((data['duration_in_seconds'] if data['duration_in_seconds'] is not None else 0) // 60, (data['duration_in_seconds'] if data['duration_in_seconds'] is not None else 0) % 60),
+            "duration_in_seconds": data['duration_in_seconds'],
             "initial_prompt": data['initial_prompt'],
             "processing_started": data['processing_started'],
-            "pit_processing_started": data['pit_processing_started'] if data['pit_processing_started'] == None else dt.strptime(str(data['pit_processing_started']), '%Y-%m-%d %H:%M:%S').isoformat(),
+            "pit_processing_started": data['pit_processing_started'] if data['pit_processing_started'] is None else dt.strptime(str(data['pit_processing_started']), '%Y-%m-%d %H:%M:%S').isoformat(),
             "callback_send": data['callback_send'],
             "error_encountered": data['error_encountered'],
-            "pit_processing_finished": data['pit_processing_finished'] if data['pit_processing_finished'] == None else dt.strptime(str(data['pit_processing_finished']), '%Y-%m-%d %H:%M:%S').isoformat(),
+            "pit_processing_finished": data['pit_processing_finished'] if data['pit_processing_finished'] is None else dt.strptime(str(data['pit_processing_finished']), '%Y-%m-%d %H:%M:%S').isoformat(),
             "result_text": data['result_text'],
             "segments_json": data['segments_json'],
         }
