@@ -71,6 +71,10 @@ def transcribe(transcribe: Transcribe):
                 cursor.close()
                 mydb.close()
 
+                os.spawnl(os.P_NOWAIT,                                  # flag
+                          "/usr/local/bin/python",                      # programm
+                          "/usr/local/bin/python", "/app/runner.py")    # arguments
+
                 if validators.url(transcribe.callback):
                     return TranscribeResponse(status=200, result="Link added to queue. Transcription will be send to callback (\'" + transcribe.callback + "\')", task_id=cursor.lastrowid)
                 else:
