@@ -96,14 +96,11 @@ try:
             cursor.execute(sql, val)
             mydb.commit()
 
-            cursor.close()
-            mydb.close()
-
             os.remove(row['file_path'])
-            exit(0)
         elif row['callback_send'] == 0:
             logging.debug("A Transcription is already running...")
             exit(0)
+
 except Exception as e:
     logging.debug("There was an error: " + str(e))
     logging.debug("Stacktrace: " + str(traceback.format_exc()))
@@ -113,3 +110,7 @@ except Exception as e:
     val = (row['task_id'],)
     cursor.execute(sql, val)
     mydb.commit()
+
+finally:
+    cursor.close()
+    mydb.close()
