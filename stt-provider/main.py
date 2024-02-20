@@ -206,3 +206,138 @@ def task_details(task_id: int) -> Response:
         web_content = '{"status": 500, "result": "Error: task_id not found"}'
         headers = {"Content-Type": "application/json", "Content-Language": "en-US"}
         return Response(content=web_content, headers=headers)
+
+
+class Status(BaseModel):
+    status: int
+    files_in_queue: int
+    duration_of_current_transcript_in_seconds: int
+    last_transcript_started: datetime.datetime
+    processing_estimate: float
+
+
+@app.get("/status", response_model=Status)
+def status():
+    try:
+        mydb = mysql.connector.connect(
+            host=env_var_mysql_host,
+            user=env_var_mysql_user,
+            password=env_var_mysql_password,
+            database=env_var_mysql_database
+        )
+        cursor = mydb.cursor(dictionary=True)
+
+        sql = "SELECT COUNT(*) AS files_in_queue FROM stt_tasks WHERE callback_send = %s"
+        val = ("0",)
+        cursor.execute(sql, val)
+        data = cursor.fetchone()
+        files_in_queue = data['files_in_queue']
+
+        sql = "SELECT * FROM stt_tasks WHERE processing_started = %s AND callback_send = %s ORDER BY task_id DESC"
+        val = ("1", "0")
+        cursor.execute(sql, val)
+        data = cursor.fetchone()
+        print(data)
+        if data is not None:
+            last_transcript_started = data['pit_processing_started']
+
+            duration_in_seconds = data['duration_in_seconds']
+            current_pit = datetime.datetime.now()
+            time_diff = current_pit - last_transcript_started
+
+            print(duration_in_seconds)
+            print(time_diff)
+            processing_estimate = time_diff.total_seconds() / duration_in_seconds
+            print(processing_estimate)
+        else:
+            duration_in_seconds = 0
+            last_transcript_started = '1970-01-01T00:00:00'
+            processing_estimate = 0
+
+        return Status(status=200, files_in_queue=files_in_queue, duration_of_current_transcript_in_seconds=duration_in_seconds, last_transcript_started=last_transcript_started, processing_estimate=processing_estimate)
+    except Exception as e:
+        print(e)
+        print(str(traceback.format_exc()))
+        return Status(status=500, files_in_queue=0, duration_of_current_transcript_in_seconds=0, last_transcript_started='1970-01-01T00:00:00', processing_estimate=0)
+
+
+class StatusPRTG(BaseModel):
+    {}
+
+
+@app.get("/status_prtg", response_model=StatusPRTG)
+def status_prtg():
+    try:
+        mydb = mysql.connector.connect(
+            host=env_var_mysql_host,
+            user=env_var_mysql_user,
+            password=env_var_mysql_password,
+            database=env_var_mysql_database
+        )
+        cursor = mydb.cursor(dictionary=True)
+
+        sql = "SELECT COUNT(*) AS files_in_queue FROM stt_tasks WHERE callback_send = %s"
+        val = ("0",)
+        cursor.execute(sql, val)
+        data = cursor.fetchone()
+        files_in_queue = data['files_in_queue']
+
+        sql = "SELECT * FROM stt_tasks WHERE processing_started = %s AND callback_send = %s ORDER BY task_id DESC"
+        val = ("1", "0")
+        cursor.execute(sql, val)
+        data = cursor.fetchone()
+        print(data)
+        if data is not None:
+            last_transcript_started = data['pit_processing_started']
+
+            duration_in_seconds = data['duration_in_seconds']
+            current_pit = datetime.datetime.now()
+            time_diff = current_pit - last_transcript_started
+
+            print(duration_in_seconds)
+            print(time_diff)
+            processing_estimate = time_diff.total_seconds() / duration_in_seconds
+            print(processing_estimate)
+        else:
+            duration_in_seconds = 0
+            last_transcript_started = '1970-01-01T00:00:00'
+            processing_estimate = 0
+
+        data = {}
+        result = []
+        data['prtg'] = {}
+
+        channel = {}
+        channel['Channel'] = 'files_in_queue'
+        channel['CustomUnit'] = 'file(s)'
+        channel['Float'] = 0
+        channel['Mode'] = 'Absolute'
+        channel['Value'] = files_in_queue
+        result.append(channel)
+
+        channel = {}
+        channel['Channel'] = 'duration_of_current_transcript_in_seconds'
+        channel['CustomUnit'] = 'seconds'
+        channel['Float'] = 0
+        channel['Mode'] = 'Absolute'
+        channel['Value'] = duration_in_seconds
+        result.append(channel)
+
+        channel = {}
+        channel['Channel'] = 'processing_estimate'
+        channel['CustomUnit'] = 'processing_time/file_length ratio'
+        channel['Float'] = 1
+        channel['Mode'] = 'Absolute'
+        channel['Value'] = processing_estimate
+        result.append(channel)
+
+        data['prtg']['result'] = result
+
+        headers = {"Content-Type": "application/json", "Content-Language": "en-US"}
+        return Response(content=json.dumps(data), headers=headers)
+    except Exception as e:
+        print(e)
+        print(str(traceback.format_exc()))
+        web_content = '{"Status": 500, "result": "Internal Error: Look at the logs" }'
+        headers = {"Content-Type": "application/json", "Content-Language": "en-US"}
+        return Response(content=web_content, headers=headers)
