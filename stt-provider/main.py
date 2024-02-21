@@ -237,18 +237,13 @@ def status():
         val = ("1", "0")
         cursor.execute(sql, val)
         data = cursor.fetchone()
-        print(data)
+        
         if data is not None:
             last_transcript_started = data['pit_processing_started']
-
             duration_in_seconds = data['duration_in_seconds']
             current_pit = datetime.datetime.now()
             time_diff = current_pit - last_transcript_started
-
-            print(duration_in_seconds)
-            print(time_diff)
             processing_estimate = time_diff.total_seconds() / duration_in_seconds
-            print(processing_estimate)
         else:
             duration_in_seconds = 0
             last_transcript_started = '1970-01-01T00:00:00'
@@ -286,18 +281,13 @@ def status_prtg():
         val = ("1", "0")
         cursor.execute(sql, val)
         data = cursor.fetchone()
-        print(data)
+        
         if data is not None:
             last_transcript_started = data['pit_processing_started']
-
             duration_in_seconds = data['duration_in_seconds']
             current_pit = datetime.datetime.now()
             time_diff = current_pit - last_transcript_started
-
-            print(duration_in_seconds)
-            print(time_diff)
             processing_estimate = time_diff.total_seconds() / duration_in_seconds
-            print(processing_estimate)
         else:
             duration_in_seconds = 0
             last_transcript_started = '1970-01-01T00:00:00'

@@ -3,9 +3,7 @@
 * * * * * echo "Cronjob running..." >> /var/log/cron.log 2>&1
 
 # runner.py to transcribe the text and send it to the callback_url
-* * * * * /usr/local/bin/python /app/runner.py >> /var/log/cron.log 2>&1
-# * * * * * bash -l -c '/usr/local/bin/python /app/runner.py >> /var/log/cron.log 2>&1'
-# An empty line is required at the end of this file for a valid cron file.
+* * * * * /usr/local/bin/python /app/runner.py
 
 # Log cleanup
 1 0 * * * mv /var/log/cron.log /var/log/$(date -d "yesterday 13:00" -I)_cron.log
@@ -14,3 +12,4 @@
 1 0 * * * mv /var/log/uvicorn.log /var/log/$(date -d "yesterday 13:00" -I)_uvicorn.log
 3 1 * * * find /var/log/*_uvicorn.log -type f -mtime +7 -delete
 
+# An empty line is required at the end of this file for a valid cron file.
