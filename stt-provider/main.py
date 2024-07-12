@@ -91,6 +91,7 @@ def transcribe(transcribe: Transcribe):
 
 class TaskResponse(BaseModel):
     task_id: int
+    pit_task_added: datetime.datetime
     file_name: str
     duration: str
     processing_started: int
@@ -124,6 +125,7 @@ def list_tasks(
         for row in data:
             data_row = {}
             data_row['task_id'] = row['task_id']
+            data_row['pit_task_added'] = row['pit_task_added'] if row['pit_task_added'] is None else dt.strptime(str(row['pit_task_added']), '%Y-%m-%d %H:%M:%S').isoformat()
             data_row['file_name'] = row['file_name']
             data_row['duration_in_seconds'] = "{:d}:{:02d}".format((row['duration_in_seconds'] if row['duration_in_seconds'] is not None else 0) // 60, (row['duration_in_seconds'] if row['duration_in_seconds'] is not None else 0) % 60)
             data_row['processing_started'] = row['processing_started']
